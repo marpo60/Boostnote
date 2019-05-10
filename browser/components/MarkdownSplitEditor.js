@@ -1,6 +1,7 @@
 import React from 'react'
 import CodeEditor from 'browser/components/CodeEditor'
 import MarkdownPreview from 'browser/components/MarkdownPreview'
+import SwaggerUI from 'swagger-ui-react'
 import { findStorage } from 'browser/lib/findStorage'
 import _ from 'lodash'
 
@@ -136,7 +137,7 @@ class MarkdownSplitEditor extends React.Component {
   }
 
   render () {
-    const {config, value, storageKey, noteKey, linesHighlighted} = this.props
+    const {config, value, storageKey, noteKey, linesHighlighted, tags} = this.props
     const storage = findStorage(storageKey)
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -144,7 +145,46 @@ class MarkdownSplitEditor extends React.Component {
     if (!(editorFontSize > 0 && editorFontSize < 132)) editorIndentSize = 4
     const previewStyle = {}
     previewStyle.width = (100 - this.state.codeEditorWidthInPercent) + '%'
+    let swagger = !!tags.find((t) => t === 'swagger')
     if (this.props.ignorePreviewPointerEvents || this.state.isSliderFocused) previewStyle.pointerEvents = 'none'
+
+    let preview
+    if (swagger) {
+      preview =
+        <div styleName='swagger' style={previewStyle}>
+          <SwaggerUI spec={value} />
+        </div>
+    } else {
+      preview =
+        <MarkdownPreview
+          style={previewStyle}
+          styleName='preview'
+          theme={config.ui.theme}
+          keyMap={config.editor.keyMap}
+          fontSize={config.preview.fontSize}
+          fontFamily={config.preview.fontFamily}
+          codeBlockTheme={config.preview.codeBlockTheme}
+          codeBlockFontFamily={config.editor.fontFamily}
+          lineNumber={config.preview.lineNumber}
+          scrollPastEnd={config.preview.scrollPastEnd}
+          smartQuotes={config.preview.smartQuotes}
+          smartArrows={config.preview.smartArrows}
+          breaks={config.preview.breaks}
+          sanitize={config.preview.sanitize}
+          ref='preview'
+          tabInde='0'
+          value={value}
+          onCheckboxClick={(e) => this.handleCheckboxClick(e)}
+          onScroll={this.handleScroll.bind(this)}
+          showCopyNotification={config.ui.showCopyNotification}
+          storagePath={storage.path}
+          noteKey={noteKey}
+          customCSS={config.preview.customCSS}
+          allowCustomCSS={config.preview.allowCustomCSS}
+          lineThroughCheckbox={config.preview.lineThroughCheckbox}
+        />
+    }
+
     return (
       <div styleName='root' ref='root'
         onMouseMove={e => this.handleMouseMove(e)}
@@ -183,33 +223,7 @@ class MarkdownSplitEditor extends React.Component {
         <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
           <div styleName='slider-hitbox' />
         </div>
-        <MarkdownPreview
-          style={previewStyle}
-          styleName='preview'
-          theme={config.ui.theme}
-          keyMap={config.editor.keyMap}
-          fontSize={config.preview.fontSize}
-          fontFamily={config.preview.fontFamily}
-          codeBlockTheme={config.preview.codeBlockTheme}
-          codeBlockFontFamily={config.editor.fontFamily}
-          lineNumber={config.preview.lineNumber}
-          scrollPastEnd={config.preview.scrollPastEnd}
-          smartQuotes={config.preview.smartQuotes}
-          smartArrows={config.preview.smartArrows}
-          breaks={config.preview.breaks}
-          sanitize={config.preview.sanitize}
-          ref='preview'
-          tabInde='0'
-          value={value}
-          onCheckboxClick={(e) => this.handleCheckboxClick(e)}
-          onScroll={this.handleScroll.bind(this)}
-          showCopyNotification={config.ui.showCopyNotification}
-          storagePath={storage.path}
-          noteKey={noteKey}
-          customCSS={config.preview.customCSS}
-          allowCustomCSS={config.preview.allowCustomCSS}
-          lineThroughCheckbox={config.preview.lineThroughCheckbox}
-       />
+        {preview}
       </div>
     )
   }

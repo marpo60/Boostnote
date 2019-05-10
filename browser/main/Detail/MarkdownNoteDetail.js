@@ -387,6 +387,7 @@ class MarkdownNoteDetail extends React.Component {
         ref='content'
         config={config}
         value={note.content}
+        tags={note.tags}
         storageKey={note.storage}
         noteKey={note.key}
         linesHighlighted={note.linesHighlighted}
